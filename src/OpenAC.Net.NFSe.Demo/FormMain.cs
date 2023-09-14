@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -19,8 +20,7 @@ using OpenAC.Net.NFSe.Providers;
 
 namespace OpenAC.Net.NFSe.Demo;
 
-public partial class FormMain : Form, IOpenLog
-{
+public partial class FormMain : Form, IOpenLog {
     #region Fields
 
     private readonly OpenNFSe openNFSe;
@@ -30,8 +30,7 @@ public partial class FormMain : Form, IOpenLog
 
     #region Constructors
 
-    public FormMain()
-    {
+    public FormMain() {
         InitializeComponent();
         openNFSe = new OpenNFSe();
         config = OpenConfig.CreateOrLoad(Path.Combine(Application.StartupPath, "nfse.config"));
@@ -44,10 +43,8 @@ public partial class FormMain : Form, IOpenLog
 
     #region EventHandlers
 
-    private void btnEditCidade_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnEditCidade_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var municipio = cmbCidades.GetSelectedValue<OpenMunicipioNFSe>();
             if (municipio == null) return;
 
@@ -56,14 +53,12 @@ public partial class FormMain : Form, IOpenLog
             LoadData();
         });
     }
-    
-    private void btnSalvarConfig_Click(object sender, EventArgs e)
-    {
+
+    private void btnSalvarConfig_Click(object sender, EventArgs e) {
         SaveConfig();
     }
 
-    private void btnGerarRps_Click(object sender, EventArgs e)
-    {
+    private void btnGerarRps_Click(object sender, EventArgs e) {
         GerarRps();
 
         var path = Helpers.SelectFolder();
@@ -72,10 +67,8 @@ public partial class FormMain : Form, IOpenLog
         openNFSe.NotasServico[0].Save(path);
     }
 
-    private void btnGerarEnviarLoteRps_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnGerarEnviarLoteRps_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             GerarRps();
 
             var numero = 1;
@@ -86,10 +79,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnConsultarSituacao_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnConsultarSituacao_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var numero = 10;
             if (InputBox.Show("Numero Lote", "Digite o numero do lote.", ref numero).Equals(DialogResult.Cancel)) return;
 
@@ -101,10 +92,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnConsultarLote_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnConsultarLote_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var numero = 10;
             if (InputBox.Show("Numero Lote", "Digite o numero do lote.", ref numero).Equals(DialogResult.Cancel)) return;
 
@@ -116,10 +105,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnConsultarNFSeRps_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnConsultarNFSeRps_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var numero = 10;
             if (InputBox.Show("Numero da RPS", "Digite o numero da RPS.", ref numero).Equals(DialogResult.Cancel)) return;
 
@@ -131,10 +118,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnConsultarNFSePeriodo_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnConsultarNFSePeriodo_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var numero = 0;
             if (InputBox.Show("Numero da Nota", "Digite o numero da Nota", ref numero).Equals(DialogResult.Cancel)) return;
 
@@ -151,10 +136,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnCancelarNFSe_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnCancelarNFSe_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var codigo = "0001";
             if (InputBox.Show("Código de cancelamento", "Código de cancelamento.", ref codigo).Equals(DialogResult.Cancel)) return;
 
@@ -172,45 +155,47 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnGerarEnviarLoteSinc_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnGerarEnviarLoteSinc_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             GerarRps();
 
             var numero = 1;
             if (InputBox.Show("Numero Lote", "Digite o numero do lote.", ref numero).Equals(DialogResult.Cancel)) return;
-
             var ret = openNFSe.Enviar(numero, true);
             ProcessarRetorno(ret);
+
+            if (ret.Sucesso) {
+                foreach(var nota in openNFSe.NotasServico) {
+                    String dados = String.Format(@"\nNumero Nota: {0}\nCod Verificação:{1}\nDataEmissao: {2}", 
+                                                    nota.IdentificacaoNFSe.Numero, nota.IdentificacaoNFSe.Chave, nota.IdentificacaoNFSe.DataEmissao);
+                    wbbNFSe.LoadXml(nota.XmlOriginal);
+                    rtbLog.AppendText(dados);
+
+                    break;
+                }
+            }
+
         });
     }
 
-    private void btnSelecionarSchema_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnSelecionarSchema_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             txtSchemas.Text = Helpers.SelectFolder();
         });
     }
 
-    private void btnPathXml_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnPathXml_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             txtPathXml.Text = Helpers.SelectFolder();
         });
     }
 
-    private void btnSelecionarArquivo_Click(object sender, EventArgs e)
-    {
+    private void btnSelecionarArquivo_Click(object sender, EventArgs e) {
         LoadMunicipios();
     }
 
-    private void btnAdicionar_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnAdicionar_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var municipio = new OpenMunicipioNFSe();
             if (FormEdtMunicipio.Editar(municipio).Equals(DialogResult.Cancel)) return;
 
@@ -218,10 +203,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnCopiar_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnCopiar_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             if (dgvCidades.SelectedRows.Count < 1) return;
 
             if (MessageBox.Show(@"Você tem certeza?", @"ACBrNFSe Demo", MessageBoxButtons.YesNo).Equals(DialogResult.No)) return;
@@ -233,10 +216,8 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnDeletar_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnDeletar_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             if (dgvCidades.SelectedRows.Count < 1) return;
 
             if (MessageBox.Show(@"Você tem certeza?", @"ACBrNFSe Demo", MessageBoxButtons.YesNo).Equals(DialogResult.No)) return;
@@ -249,28 +230,23 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnCarregar_Click(object sender, EventArgs e)
-    {
+    private void btnCarregar_Click(object sender, EventArgs e) {
         LoadMunicipios();
     }
 
-    private void btnSalvar_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnSalvar_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             if (dgvCidades.Rows.Count < 1) return;
 
             var path = Helpers.SelectFolder();
             if (path.IsEmpty()) return;
-            
+
             ProviderManager.Save(Path.Combine(path, "Municipios.nfse"));
         });
     }
 
-    private void btnGetCertificate_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnGetCertificate_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.MaxAllowed | OpenFlags.ReadOnly);
 
@@ -286,35 +262,28 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void btnFindCertificate_Click(object sender, EventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void btnFindCertificate_Click(object sender, EventArgs e) {
+        ExecuteSafe(() => {
             var file = Helpers.OpenFile("Certificate Files (*.pfx)|*.pfx|All Files (*.*)|*.*", "Selecione o certificado");
             txtCertificado.Text = file;
         });
     }
 
-    private void btnImprimirDANFSe_Click(object sender, EventArgs e)
-    {
+    private void btnImprimirDANFSe_Click(object sender, EventArgs e) {
         GerarRps();
         openNFSe.Imprimir(o => o.MostrarPreview = true);
     }
 
-    private void btnGerarPDF_Click(object sender, EventArgs e)
-    {
+    private void btnGerarPDF_Click(object sender, EventArgs e) {
         openNFSe.ImprimirPDF(o => o.NomeArquivo = "NFSe.pdf");
     }
 
-    private void btnGerarHTML_Click(object sender, EventArgs e)
-    {
+    private void btnGerarHTML_Click(object sender, EventArgs e) {
         openNFSe.ImprimirPDF(o => o.NomeArquivo = "NFSe.html");
     }
 
-    private void dgvCidades_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-    {
-        ExecuteSafe(() =>
-        {
+    private void dgvCidades_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
+        ExecuteSafe(() => {
             if (e.RowIndex < 0) return;
 
             var municipio = dgvCidades.Rows[e.RowIndex].DataBoundItem as OpenMunicipioNFSe;
@@ -324,14 +293,12 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void dgvCidades_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-    {
+    private void dgvCidades_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
         if (dgvCidades.RowCount <= 0 || e.RowIndex <= -1 || e.RowIndex > dgvCidades.Rows.Count - 1 || e.ColumnIndex <= -1)
             return;
 
         var municipio = (OpenMunicipioNFSe)dgvCidades.Rows[e.RowIndex].DataBoundItem;
-        switch (dgvCidades.Columns[e.ColumnIndex].Name)
-        {
+        switch (dgvCidades.Columns[e.ColumnIndex].Name) {
             case "dgcCidade":
                 e.Value = municipio.Nome;
                 return;
@@ -366,58 +333,47 @@ public partial class FormMain : Form, IOpenLog
 
     #region ValueChanged
 
-    private void txtCNPJ_TextChanged(object sender, EventArgs e)
-    {
+    private void txtCNPJ_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.CpfCnpj = txtCPFCNPJ.Text.OnlyNumbers();
     }
 
-    private void txtIM_TextChanged(object sender, EventArgs e)
-    {
+    private void txtIM_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.InscricaoMunicipal = txtIM.Text.OnlyNumbers();
     }
 
-    private void txtRazaoSocial_TextChanged(object sender, EventArgs e)
-    {
+    private void txtRazaoSocial_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.RazaoSocial = txtRazaoSocial.Text;
     }
 
-    private void txtFantasia_TextChanged(object sender, EventArgs e)
-    {
+    private void txtFantasia_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.NomeFantasia = txtFantasia.Text;
     }
 
-    private void txtFone_TextChanged(object sender, EventArgs e)
-    {
+    private void txtFone_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.DadosContato.Telefone = txtFone.Text;
     }
 
-    private void txtCEP_TextChanged(object sender, EventArgs e)
-    {
+    private void txtCEP_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Cep = txtCEP.Text;
     }
 
-    private void txtEndereco_TextChanged(object sender, EventArgs e)
-    {
+    private void txtEndereco_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Logradouro = txtEndereco.Text;
     }
 
-    private void txtNumero_TextChanged(object sender, EventArgs e)
-    {
+    private void txtNumero_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Numero = txtNumero.Text;
     }
 
-    private void txtComplemento_TextChanged(object sender, EventArgs e)
-    {
+    private void txtComplemento_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Complemento = txtComplemento.Text;
     }
 
-    private void txtBairro_TextChanged(object sender, EventArgs e)
-    {
+    private void txtBairro_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Bairro = txtBairro.Text;
     }
 
-    private void cmbCidades_SelectedValueChanged(object sender, EventArgs e)
-    {
+    private void cmbCidades_SelectedValueChanged(object sender, EventArgs e) {
         var municipio = cmbCidades.GetSelectedValue<OpenMunicipioNFSe>();
         if (municipio == null) return;
 
@@ -431,23 +387,20 @@ public partial class FormMain : Form, IOpenLog
         openNFSe.Configuracoes.PrestadorPadrao.Endereco.Uf = municipio.UF.ToString();
     }
 
-    private void txtCertificado_TextChanged(object sender, EventArgs e)
-    {
+    private void txtCertificado_TextChanged(object sender, EventArgs e) {
         if (txtNumeroSerie.Text.IsEmpty()) return;
 
         txtNumeroSerie.Text = string.Empty;
         openNFSe.Configuracoes.Certificados.Certificado = txtCertificado.Text;
     }
 
-    private void txtSenha_TextChanged(object sender, EventArgs e)
-    {
+    private void txtSenha_TextChanged(object sender, EventArgs e) {
         if (txtSenha.Text.IsEmpty()) return;
 
         openNFSe.Configuracoes.Certificados.Senha = txtSenha.Text;
     }
 
-    private void txtNumeroSerie_TextChanged(object sender, EventArgs e)
-    {
+    private void txtNumeroSerie_TextChanged(object sender, EventArgs e) {
         if (txtNumeroSerie.Text.IsEmpty()) return;
 
         txtCertificado.Text = string.Empty;
@@ -456,42 +409,34 @@ public partial class FormMain : Form, IOpenLog
         openNFSe.Configuracoes.Certificados.Senha = string.Empty;
     }
 
-    private void txtSchemas_TextChanged(object sender, EventArgs e)
-    {
+    private void txtSchemas_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.Arquivos.PathSchemas = txtSchemas.Text;
     }
 
-    private void chkSalvarArquivos_CheckedChanged(object sender, EventArgs e)
-    {
+    private void chkSalvarArquivos_CheckedChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.Geral.Salvar = chkSalvarArquivos.Checked;
     }
 
-    private void txtArquivoCidades_Click(object sender, EventArgs e)
-    {
+    private void txtArquivoCidades_Click(object sender, EventArgs e) {
         openNFSe.Configuracoes.Arquivos.ArquivoServicos = txtArquivoCidades.Text;
     }
 
-    private void txtPathXml_TextChanged(object sender, EventArgs e)
-    {
+    private void txtPathXml_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.Arquivos.PathSalvar = txtPathXml.Text;
     }
 
-    private void txtArquivoCidades_TextChanged(object sender, EventArgs e)
-    {
+    private void txtArquivoCidades_TextChanged(object sender, EventArgs e) {
     }
 
-    private void cmbAmbiente_SelectedValueChanged(object sender, EventArgs e)
-    {
+    private void cmbAmbiente_SelectedValueChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.WebServices.Ambiente = cmbAmbiente.GetSelectedValue<DFeTipoAmbiente>();
     }
 
-    private void txtWebserviceUsuario_TextChanged(object sender, EventArgs e)
-    {
+    private void txtWebserviceUsuario_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.WebServices.Usuario = txtWebserviceUsuario.Text;
     }
 
-    private void txtWebserviceSenha_TextChanged(object sender, EventArgs e)
-    {
+    private void txtWebserviceSenha_TextChanged(object sender, EventArgs e) {
         openNFSe.Configuracoes.WebServices.Senha = txtWebserviceSenha.Text;
     }
 
@@ -499,8 +444,7 @@ public partial class FormMain : Form, IOpenLog
 
     #region Overrides
 
-    protected override void OnShown(EventArgs e)
-    {
+    protected override void OnShown(EventArgs e) {
         openNFSe.Configuracoes.Geral.RetirarAcentos = true;
         openNFSe.Configuracoes.WebServices.Salvar = true;
 
@@ -516,12 +460,11 @@ public partial class FormMain : Form, IOpenLog
 
     #endregion Overrides
 
-    private void GerarRps()
-    {
+    private void GerarRps() {
         var municipio = cmbCidades.GetSelectedValue<OpenMunicipioNFSe>();
         if (municipio == null) return;
 
-        var numeroRps = "1";
+        var numeroRps = "10";
         if (InputBox.Show("Nº RPS", "Informe o número do RPS.", ref numeroRps).Equals(DialogResult.Cancel)) return;
 
         openNFSe.NotasServico.Clear();
@@ -530,8 +473,8 @@ public partial class FormMain : Form, IOpenLog
         nfSe.IdentificacaoRps.Numero = numeroRps;
 
         // Setar a serie de acordo com o provedor.
-        switch (municipio.Provedor)
-        {
+
+        switch (municipio.Provedor) {
             case NFSeProvider.ISSCuritiba:
                 nfSe.IdentificacaoRps.Serie = "F";
                 break;
@@ -540,7 +483,9 @@ public partial class FormMain : Form, IOpenLog
                 nfSe.IdentificacaoRps.Serie = "NF";
                 nfSe.IdentificacaoRps.SeriePrestacao = "99";
                 break;
-
+            case NFSeProvider.SiapSistemas:
+                nfSe.IdentificacaoRps.Serie = "A1";
+                break;
             default:
                 nfSe.IdentificacaoRps.Serie = "1";
                 break;
@@ -552,8 +497,7 @@ public partial class FormMain : Form, IOpenLog
         nfSe.Situacao = SituacaoNFSeRps.Normal;
 
         // Setar a natureza de operação de acordo com o provedor.
-        switch (municipio.Provedor)
-        {
+        switch (municipio.Provedor) {
             case NFSeProvider.ISSDSF:
                 nfSe.NaturezaOperacao = NaturezaOperacao.DSF.SemDeducao;
                 break;
@@ -563,29 +507,39 @@ public partial class FormMain : Form, IOpenLog
                 break;
         }
 
-        nfSe.RegimeEspecialTributacao = RegimeEspecialTributacao.SimplesNacional;
+        nfSe.RegimeEspecialTributacao = RegimeEspecialTributacao.LucroPresumido;
         nfSe.IncentivadorCultural = NFSeSimNao.Nao;
 
-        var itemListaServico = municipio.Provedor.IsIn(NFSeProvider.Betha, NFSeProvider.ISSe, NFSeProvider.ISSCuritiba) ? "0107" : "01.07";
+        var itemListaServico = GetItemListaServico(municipio);
         if (InputBox.Show("Item na lista de serviço", "Informe o item na lista de serviço.", ref itemListaServico).Equals(DialogResult.Cancel)) return;
+
+
 
         // Setar o cnae de acordo com o schema aceito pelo provedor.
         var cnae = GetCnae(municipio);
         if (InputBox.Show("CNAE", "Informe o codigo CNAE.", ref cnae).Equals(DialogResult.Cancel)) return;
         nfSe.Servico.CodigoCnae = cnae;
 
-        var CodigoTributacaoMunicipio = municipio.Provedor.IsIn(NFSeProvider.SiapNet, NFSeProvider.ABase) ? "5211701" : "01.07.00 / 00010700";
+        var CodigoTributacaoMunicipio = "PA"; // municipio.Provedor.IsIn(NFSeProvider.SiapNet, NFSeProvider.ABase) ? "5211701" : "01.07.00 / 00010700";
 
         nfSe.Servico.ItemListaServico = itemListaServico;
         nfSe.Servico.CodigoTributacaoMunicipio = CodigoTributacaoMunicipio;
         nfSe.Servico.Discriminacao = "MANUTENCAO TÉCNICA / VOCÊ PAGOU APROXIMADAMENTE R$ 41,15 DE TRIBUTOS FEDERAIS, R$ 8,26 DE TRIBUTOS MUNICIPAIS, R$ 256,57 PELOS PRODUTOS/SERVICOS, FONTE: IBPT.";
         nfSe.Servico.CodigoMunicipio = municipio.Provedor == NFSeProvider.ISSDSF ? municipio.CodigoSiafi : municipio.Codigo;
         nfSe.Servico.Municipio = municipio.Nome;
-        if (municipio.Provedor.IsIn(NFSeProvider.SiapNet))
-        {
+        nfSe.Servico.MunicipioIncidencia = nfSe.Servico.CodigoMunicipio;
+
+        if (municipio.Provedor.IsIn(NFSeProvider.SiapNet)) {
             nfSe.Servico.ResponsavelRetencao = ResponsavelRetencao.Prestador;
             nfSe.Servico.MunicipioIncidencia = nfSe.Servico.CodigoMunicipio;
         }
+
+        if (municipio.Provedor.IsIn(NFSeProvider.SiapSistemas)) {
+            nfSe.Servico.ResponsavelRetencao = ResponsavelRetencao.Prestador;
+            nfSe.Servico.MunicipioIncidencia = nfSe.Servico.CodigoMunicipio;
+        }
+
+
 
         nfSe.Servico.Valores.ValorServicos = 100;
         nfSe.Servico.Valores.ValorDeducoes = 0;
@@ -594,19 +548,18 @@ public partial class FormMain : Form, IOpenLog
         nfSe.Servico.Valores.ValorInss = 0;
         nfSe.Servico.Valores.ValorIr = 0;
         nfSe.Servico.Valores.ValorCsll = 0;
-        nfSe.Servico.Valores.IssRetido = SituacaoTributaria.Normal;
-        nfSe.Servico.Valores.ValorIss = municipio.Provedor == NFSeProvider.SiapNet ? 2 : 0;
+        nfSe.Servico.Valores.IssRetido = SituacaoTributaria.Retencao;
+        nfSe.Servico.Valores.ValorIss = municipio.Provedor == NFSeProvider.SiapNet ? 2 : 2;
         nfSe.Servico.Valores.ValorOutrasRetencoes = 0;
         nfSe.Servico.Valores.BaseCalculo = 100;
         nfSe.Servico.Valores.Aliquota = 2;
-        nfSe.Servico.Valores.ValorLiquidoNfse = 100;
-        nfSe.Servico.Valores.ValorIssRetido = 0;
+        nfSe.Servico.Valores.ValorLiquidoNfse = 98;
+        nfSe.Servico.Valores.ValorIssRetido = 2;
         nfSe.Servico.Valores.DescontoCondicionado = 0;
         nfSe.Servico.Valores.DescontoIncondicionado = 0;
         nfSe.ValorCredito = 0;
 
-        if (municipio.Provedor == NFSeProvider.ISSDSF)
-        {
+        if (municipio.Provedor == NFSeProvider.ISSDSF) {
             var servico = nfSe.Servico.ItensServico.AddNew();
             servico.Descricao = "Teste";
             servico.Quantidade = 1M;
@@ -614,9 +567,9 @@ public partial class FormMain : Form, IOpenLog
             servico.Tributavel = NFSeSimNao.Sim;
         }
 
-        nfSe.Tomador.CpfCnpj = "44854962283";
+        nfSe.Tomador.CpfCnpj = "04503660001380";
         nfSe.Tomador.InscricaoMunicipal = "";
-        nfSe.Tomador.RazaoSocial = "Nome";
+        nfSe.Tomador.RazaoSocial = "NOME";
 
         nfSe.Tomador.Endereco.TipoLogradouro = "";
         nfSe.Tomador.Endereco.Logradouro = "INDEPENDENCIA";
@@ -627,7 +580,10 @@ public partial class FormMain : Form, IOpenLog
         nfSe.Tomador.Endereco.Municipio = municipio.Nome;
         nfSe.Tomador.Endereco.Uf = municipio.UF.ToString();
         nfSe.Tomador.Endereco.Cep = "14020010";
-        nfSe.Tomador.Endereco.CodigoPais = 1058;
+
+        if (municipio.Provedor != NFSeProvider.SiapSistemas)
+            nfSe.Tomador.Endereco.CodigoPais = 1058;
+
         nfSe.Tomador.Endereco.Pais = "BRASIL";
 
         nfSe.Tomador.DadosContato.DDD = "16";
@@ -635,11 +591,17 @@ public partial class FormMain : Form, IOpenLog
         nfSe.Tomador.DadosContato.Email = "NOME@EMPRESA.COM.BR";
     }
 
-    private static string GetCnae(OpenMunicipioNFSe municipio)
-    {
-        return municipio.Provedor switch
-        {
+    private static string GetItemListaServico(OpenMunicipioNFSe municipio) {
+        return municipio.Provedor switch {
+            NFSeProvider.SiapSistemas => "04.09.00",
+            _ => municipio.Provedor.IsIn(NFSeProvider.Betha, NFSeProvider.ISSe, NFSeProvider.ISSCuritiba) ? "0107" : "01.07"
+        };
+    }
+
+    private static string GetCnae(OpenMunicipioNFSe municipio) {
+        return municipio.Provedor switch {
             NFSeProvider.SiapNet => "5211701",
+            NFSeProvider.SiapSistemas => "8690999",
             NFSeProvider.Sintese => "5211701",
             NFSeProvider.ABase => "5211701",
             NFSeProvider.Pronim when municipio.Versao == VersaoNFSe.ve203 => "5211701",
@@ -650,12 +612,10 @@ public partial class FormMain : Form, IOpenLog
         };
     }
 
-    private void ProcessarRetorno(RetornoWebservice retorno)
-    {
+    private void ProcessarRetorno(RetornoWebservice retorno) {
         rtLogResposta.Clear();
 
-        switch (retorno)
-        {
+        switch (retorno) {
             case RetornoEnviar ret:
                 rtLogResposta.AppendLine(ret.Sincrono ? "Metodo : Enviar Sincrono" : "Metodo : Enviar");
                 rtLogResposta.AppendLine($"Data : {ret.Data:G}");
@@ -679,10 +639,8 @@ public partial class FormMain : Form, IOpenLog
                 rtLogResposta.AppendLine($"Situação : {ret.Situacao}");
                 rtLogResposta.AppendLine($"Sucesso : {ret.Sucesso}");
 
-                if (!ret.Notas.IsNullOrEmpty())
-                {
-                    foreach (var nota in ret.Notas)
-                    {
+                if (!ret.Notas.IsNullOrEmpty()) {
+                    foreach (var nota in ret.Notas) {
                         rtLogResposta.AppendLine($"NFSe : {nota.IdentificacaoNFSe.Numero}");
                         rtLogResposta.AppendLine($"Chave : {nota.IdentificacaoNFSe.Chave}");
                         rtLogResposta.AppendLine($"Data Emissão : {nota.IdentificacaoNFSe.DataEmissao:G}");
@@ -699,8 +657,7 @@ public partial class FormMain : Form, IOpenLog
                 rtLogResposta.AppendLine($"Mês : {ret.MesCompetencia}");
                 rtLogResposta.AppendLine($"Sucesso : {ret.Sucesso}");
 
-                if (ret.Nota != null)
-                {
+                if (ret.Nota != null) {
                     rtLogResposta.AppendLine($"NFSe : {ret.Nota.IdentificacaoNFSe.Numero}");
                     rtLogResposta.AppendLine($"Chave : {ret.Nota.IdentificacaoNFSe.Chave}");
                     rtLogResposta.AppendLine($"Data Emissão : {ret.Nota.IdentificacaoNFSe.DataEmissao:G}");
@@ -722,10 +679,8 @@ public partial class FormMain : Form, IOpenLog
                 rtLogResposta.AppendLine($"Proxima Pagina : {ret.ProximaPagina}");
                 rtLogResposta.AppendLine($"Sucesso : {ret.Sucesso}");
 
-                if (!ret.Notas.IsNullOrEmpty())
-                {
-                    foreach (var nota in ret.Notas)
-                    {
+                if (!ret.Notas.IsNullOrEmpty()) {
+                    foreach (var nota in ret.Notas) {
                         rtLogResposta.AppendLine($"NFSe : {nota.IdentificacaoNFSe.Numero}");
                         rtLogResposta.AppendLine($"Chave : {nota.IdentificacaoNFSe.Chave}");
                         rtLogResposta.AppendLine($"Data Emissão : {nota.IdentificacaoNFSe.DataEmissao:G}");
@@ -764,8 +719,7 @@ public partial class FormMain : Form, IOpenLog
                 rtLogResposta.AppendLine($"NFSe : {ret.NumeroNFSe}");
                 rtLogResposta.AppendLine($"Sucesso : {ret.Sucesso}");
 
-                if (ret.Nota != null)
-                {
+                if (ret.Nota != null) {
                     rtLogResposta.AppendLine($"NFSe : {ret.Nota.IdentificacaoNFSe.Numero}");
                     rtLogResposta.AppendLine($"Chave : {ret.Nota.IdentificacaoNFSe.Chave}");
                     rtLogResposta.AppendLine($"Data Emissão : {ret.Nota.IdentificacaoNFSe.DataEmissao:G}");
@@ -773,12 +727,10 @@ public partial class FormMain : Form, IOpenLog
                 break;
         }
 
-        if (retorno.Alertas.Any())
-        {
+        if (retorno.Alertas.Any()) {
             rtLogResposta.JumpLine();
             rtLogResposta.AppendLine("Alerta(s):");
-            foreach (var erro in retorno.Erros)
-            {
+            foreach (var erro in retorno.Erros) {
                 rtLogResposta.AppendLine($"Codigo : {erro.Codigo}");
                 rtLogResposta.AppendLine($"Mensagem : {erro.Descricao}");
                 rtLogResposta.AppendLine($"Correção : {erro.Correcao}");
@@ -786,12 +738,10 @@ public partial class FormMain : Form, IOpenLog
             }
         }
 
-        if (retorno.Erros.Any())
-        {
+        if (retorno.Erros.Any()) {
             rtLogResposta.JumpLine();
             rtLogResposta.AppendLine("Erro(s):");
-            foreach (var erro in retorno.Erros)
-            {
+            foreach (var erro in retorno.Erros) {
                 rtLogResposta.AppendLine($"Codigo : {erro.Codigo}");
                 rtLogResposta.AppendLine($"Mensagem : {erro.Descricao}");
                 rtLogResposta.AppendLine($"Correção : {erro.Correcao}");
@@ -803,26 +753,23 @@ public partial class FormMain : Form, IOpenLog
         wbbEnvelopeEnvio.LoadXml(retorno.EnvelopeEnvio);
         wbbResposta.LoadXml(retorno.XmlRetorno);
         wbbRetorno.LoadXml(retorno.EnvelopeRetorno);
+
     }
 
-    private void AddMunicipio(params OpenMunicipioNFSe[] municipios)
-    {
+    private void AddMunicipio(params OpenMunicipioNFSe[] municipios) {
         ProviderManager.Municipios.AddRange(municipios);
         LoadData();
     }
 
-    private void LoadData()
-    {
+    private void LoadData() {
         dgvCidades.DataSource = null;
         dgvCidades.DataSource = ProviderManager.Municipios.ToArray();
 
         UpdateCidades();
     }
 
-    private void LoadMunicipios()
-    {
-        ExecuteSafe(() =>
-        {
+    private void LoadMunicipios() {
+        ExecuteSafe(() => {
             var arquivo = Helpers.OpenFile("Arquivo de cidades NFSe (*.nfse)|*.nfse|Todos os arquivos|*.*", "Selecione o arquivo de cidades");
             if (arquivo.IsEmpty()) return;
 
@@ -832,16 +779,13 @@ public partial class FormMain : Form, IOpenLog
         });
     }
 
-    private void UpdateCidades()
-    {
+    private void UpdateCidades() {
         cmbCidades.MunicipiosDataSource();
     }
 
-    private void InitializeLog()
-    {
+    private void InitializeLog() {
         var config = new LoggingConfiguration();
-        var target = new RichTextBoxTarget
-        {
+        var target = new RichTextBoxTarget {
             UseDefaultRowColoringRules = true,
             Layout = @"${date:format=dd/MM/yyyy HH\:mm\:ss} - ${message}",
             FormName = Name,
@@ -852,8 +796,7 @@ public partial class FormMain : Form, IOpenLog
         config.AddTarget("RichTextBox", target);
         config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, target));
 
-        var infoTarget = new FileTarget
-        {
+        var infoTarget = new FileTarget {
             FileName = "${basedir:dir=Logs:file=ACBrNFSe.log}",
             Layout = "${processid}|${longdate}|${level:uppercase=true}|" +
                      "${event-context:item=Context}|${logger}|${message}",
@@ -871,11 +814,9 @@ public partial class FormMain : Form, IOpenLog
         LogManager.Configuration = config;
     }
 
-    private void LoadConfig()
-    {
+    private void LoadConfig() {
         var cnpj = config.Get("PrestadorCPFCNPJ", string.Empty);
-        if (!cnpj.IsEmpty())
-        {
+        if (!cnpj.IsEmpty()) {
             txtCPFCNPJ.Text = cnpj.FormataCPFCNPJ();
         }
 
@@ -893,11 +834,9 @@ public partial class FormMain : Form, IOpenLog
         txtWebserviceSenha.Text = config.Get("SenhaWebservice", string.Empty);
 
         var codMunicipio = config.Get("Municipio", 0);
-        if (codMunicipio > 0)
-        {
+        if (codMunicipio > 0) {
             var municipio = ProviderManager.Municipios.SingleOrDefault(x => x.Codigo == codMunicipio);
-            if (municipio != null)
-            {
+            if (municipio != null) {
                 cmbCidades.SetSelectedValue(municipio);
             }
         }
@@ -914,8 +853,7 @@ public partial class FormMain : Form, IOpenLog
         txtPathXml.Text = config.Get("CaminhoXML", string.Empty);
     }
 
-    private void SaveConfig()
-    {
+    private void SaveConfig() {
         config.Set("PrestadorCPFCNPJ", txtCPFCNPJ.Text.OnlyNumbers());
         config.Set("PrestadorIM", txtIM.Text.OnlyNumbers());
         config.Set("PrestadorRazaoSocial", txtRazaoSocial.Text);
@@ -947,14 +885,10 @@ public partial class FormMain : Form, IOpenLog
         config.Save();
     }
 
-    private void ExecuteSafe(Action action)
-    {
-        try
-        {
+    private void ExecuteSafe(Action action) {
+        try {
             action();
-        }
-        catch (Exception exception)
-        {
+        } catch (Exception exception) {
             lblStatus.Text = exception.Message;
             rtLogResposta.Clear();
             rtLogResposta.AppendLine($"Erro : {exception.Message}");
@@ -962,4 +896,8 @@ public partial class FormMain : Form, IOpenLog
     }
 
     #endregion Methods
+
+    private void rtLogResposta_TextChanged(object sender, EventArgs e) {
+
+    }
 }

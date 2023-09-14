@@ -86,6 +86,7 @@ public static class ProviderManager
             {NFSeProvider.IISPortoVelho, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve203, typeof(ProviderISSPortoVelho)}}},
             {NFSeProvider.RLZ, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve203, typeof(ProviderRLZ)}}},
             {NFSeProvider.SiapNet, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve201, typeof(ProviderSiapNet)}}},
+            {NFSeProvider.SiapSistemas, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve203, typeof(ProviderSiapSistemas)}}},
             {NFSeProvider.SigISS, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderSigISS100)}, {VersaoNFSe.ve103, typeof(ProviderSigISS103)}}},
             {NFSeProvider.SigISSWeb, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderSigISSWeb)}}},
             {NFSeProvider.SimplISS, new Dictionary<VersaoNFSe, Type> {{VersaoNFSe.ve100, typeof(ProviderSimplISS100)}, {VersaoNFSe.ve203, typeof(ProviderSimplISS203)}}},
